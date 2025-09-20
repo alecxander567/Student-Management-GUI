@@ -19,7 +19,7 @@ A C# .NET front-end application for managing students, instructors, and classes.
   - Delete classes
   - All CRUD operations are available via RESTful API endpoints
 
-     ![App Screenshot](images/img3(2).png)
+     ![App Screenshot](images/img3.png)
 
 - **Role Support**
   - Supports `Student` and `Instructor` roles
