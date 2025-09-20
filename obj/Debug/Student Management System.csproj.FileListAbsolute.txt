@@ -1,0 +1,17 @@
+C:\Users\Lenovo\source\repos\Student Management System\Student Management System\bin\Debug\Student Management System.exe.config
+C:\Users\Lenovo\source\repos\Student Management System\Student Management System\bin\Debug\Student Management System.exe
+C:\Users\Lenovo\source\repos\Student Management System\Student Management System\bin\Debug\Student Management System.pdb
+C:\Users\Lenovo\source\repos\Student Management System\Student Management System\obj\Debug\Student Management System.csproj.AssemblyReference.cache
+C:\Users\Lenovo\source\repos\Student Management System\Student Management System\obj\Debug\Student_Management_System.Properties.Resources.resources
+C:\Users\Lenovo\source\repos\Student Management System\Student Management System\obj\Debug\Student Management System.csproj.GenerateResource.cache
+C:\Users\Lenovo\source\repos\Student Management System\Student Management System\obj\Debug\Student Management System.csproj.CoreCompileInputs.cache
+C:\Users\Lenovo\source\repos\Student Management System\Student Management System\obj\Debug\Student Management System.exe
+C:\Users\Lenovo\source\repos\Student Management System\Student Management System\obj\Debug\Student Management System.pdb
+C:\Users\Lenovo\source\repos\Student Management System\Student Management System\obj\Debug\Student Management System.exe.config
+C:\Users\Lenovo\source\repos\Student Management System\Student Management System\obj\Debug\Student_Management_System.frmLogin.resources
+C:\Users\Lenovo\source\repos\Student Management System\Student Management System\bin\Debug\Siticone.Desktop.UI.dll
+C:\Users\Lenovo\source\repos\Student Management System\Student Management System\obj\Debug\Student .B1F29E5F.Up2Date
+C:\Users\Lenovo\source\repos\Student Management System\Student Management System\obj\Debug\Student_Management_System.frmSignup.resources
+C:\Users\Lenovo\source\repos\Student Management System\Student Management System\bin\Debug\Newtonsoft.Json.dll
+C:\Users\Lenovo\source\repos\Student Management System\Student Management System\bin\Debug\Newtonsoft.Json.xml
+C:\Users\Lenovo\source\repos\Student Management System\Student Management System\obj\Debug\Student_Management_System.frmInstructorClasses.resources
