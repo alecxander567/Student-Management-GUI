@@ -1,6 +1,6 @@
 ﻿namespace Student_Management_System
 {
-    partial class frmInstructorClasses
+    partial class frmClass
     {
         /// <summary>
         /// Required designer variable.
@@ -30,14 +30,13 @@
         {
             this.SuspendLayout();
             // 
-            // frmInstructorClasses
+            // frmClass
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.BackColor = System.Drawing.Color.SpringGreen;
-            this.ClientSize = new System.Drawing.Size(1388, 770);
-            this.Name = "frmInstructorClasses";
-            this.Text = "My Classes";
+            this.ClientSize = new System.Drawing.Size(1413, 761);
+            this.Name = "frmClass";
+            this.Text = "Classroom";
             this.ResumeLayout(false);
 
         }

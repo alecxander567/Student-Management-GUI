@@ -192,7 +192,7 @@ namespace Student_Management_System
             {
                 Text = "Open",
                 Size = new Size(100, 40),
-                Location = new Point(10, 10), 
+                Location = new Point(10, 10),
                 FillColor = Color.SeaGreen,
                 ForeColor = Color.White,
                 BorderRadius = 8,
@@ -201,8 +201,11 @@ namespace Student_Management_System
 
             btnOpen.Click += (s, e) =>
             {
-                MessageBox.Show($"Open class: {cls.ClassName}");
+                var classroomForm = new frmClass(cls);
+                classroomForm.ShowDialog();
+                this.Hide();
             };
+
             btnPanel.Controls.Add(btnOpen);
 
             var btnEdit = new SiticoneButton

@@ -1,6 +1,8 @@
-﻿namespace Student_Management_System
+﻿using System;
+
+namespace Student_Management_System
 {
-    partial class frmInstructorClasses
+    partial class frmAssignment
     {
         /// <summary>
         /// Required designer variable.
@@ -30,16 +32,21 @@
         {
             this.SuspendLayout();
             // 
-            // frmInstructorClasses
+            // frmAssignment
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.BackColor = System.Drawing.Color.SpringGreen;
-            this.ClientSize = new System.Drawing.Size(1388, 770);
-            this.Name = "frmInstructorClasses";
-            this.Text = "My Classes";
+            this.ClientSize = new System.Drawing.Size(1159, 735);
+            this.Name = "frmAssignment";
+            this.Text = "Add Assignment";
+            this.Load += new System.EventHandler(this.frmAssigment_Load);
             this.ResumeLayout(false);
 
+        }
+
+        private void frmAssigment_Load(object sender, EventArgs e)
+        {
+            throw new NotImplementedException();
         }
 
         #endregion

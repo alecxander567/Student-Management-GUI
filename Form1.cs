@@ -171,14 +171,12 @@ namespace Student_Management_System
                         string fullName = result.user.full_name;
                         string role = result.user.role;
 
-                        MessageBox.Show($"Welcome {fullName}!\nRole: {role}", "Login Successful", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        MessageBox.Show($"Welcome {fullName}!", "Login Successful", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
-                        if (role == "Instructor")
-                        {
-                            frmInstructorClasses instructorForm = new frmInstructorClasses();
-                            instructorForm.Show();
-                            this.Hide();
-                        }
+                         frmInstructorClasses instructorForm = new frmInstructorClasses();
+                         instructorForm.Show();
+                         this.Hide();
+                       
                     }
                     else
                     {
