@@ -294,20 +294,103 @@ namespace Student_Management_System
 
                 int buttonsHeight = 50;
                 int spacingButtons = 20;
-                int startY = 120 + 100 + 20 + buttonsHeight + spacingButtons * 2; 
+                int dashboardBoxesHeight = 100;
+                int currentY = 120 + dashboardBoxesHeight + spacingButtons + buttonsHeight + spacingButtons;
 
-                int leftPadding = 220;
-                int rightPadding = 20;
-                int spacing = 20;
-                int assignmentBoxWidth = bodyPanel.Width - leftPadding - rightPadding;
+                int leftPadding = 220; 
+                int rightPadding = 40;
+                int assignmentBoxWidth = Math.Max(800, bodyPanel.Width - leftPadding - rightPadding);
                 int assignmentBoxHeight = 150;
+                int assignmentSpacing = 20;
+
+                AddDashboardBoxes(bodyPanel);
+
+                int buttonWidth = 180;
+                int buttonHeight = 50;
+                int buttonsY = 120 + dashboardBoxesHeight + 20;
+
+                SiticoneButton btnAddAssignment = new SiticoneButton
+                {
+                    Text = "Add New Assignment",
+                    Size = new Size(buttonWidth, buttonHeight),
+                    Location = new Point(bodyPanel.Width - buttonWidth - rightPadding, buttonsY),
+                    FillColor = Color.MediumSeaGreen,
+                    ForeColor = Color.White,
+                    BorderRadius = 8,
+                    Font = new Font("Segoe UI", 10, FontStyle.Bold)
+                };
+
+                SiticoneButton btnRefreshAssignments = new SiticoneButton
+                {
+                    Text = "Refresh Assignments",
+                    Size = new Size(buttonWidth, buttonHeight),
+                    Location = new Point(bodyPanel.Width - (buttonWidth * 2) - rightPadding - 10, buttonsY),
+                    FillColor = Color.DodgerBlue,
+                    ForeColor = Color.White,
+                    BorderRadius = 8,
+                    Font = new Font("Segoe UI", 10, FontStyle.Bold)
+                };
+
+                btnAddAssignment.Click += async (s, e) =>
+                {
+                    using (var form = new frmAssignment())
+                    {
+                        if (form.ShowDialog() == DialogResult.OK)
+                        {
+                            var assignmentData = new
+                            {
+                                ClassID = classId,
+                                Title = form.AssignmentTitle,
+                                Instructions = form.Instructions,
+                                DatePosted = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
+                                DateOfSubmission = form.DateOfSubmission.ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
+                            };
+
+                            string assignmentJson = Newtonsoft.Json.JsonConvert.SerializeObject(assignmentData);
+
+                            try
+                            {
+                                using (HttpClient newClient = new HttpClient())
+                                {
+                                    var content = new StringContent(assignmentJson, Encoding.UTF8, "application/json");
+                                    HttpResponseMessage addResponse = await newClient.PostAsync("http://localhost:8000/api/assignments/", content);
+
+                                    if (addResponse.IsSuccessStatusCode)
+                                    {
+                                        MessageBox.Show("Assignment added successfully!");
+                                        bodyPanel.Controls.Clear();
+                                        await LoadAssignments(bodyPanel, classId);
+                                    }
+                                    else
+                                    {
+                                        string responseContent = await addResponse.Content.ReadAsStringAsync();
+                                        MessageBox.Show($"Error adding assignment: {responseContent}");
+                                    }
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                MessageBox.Show($"Exception: {ex.Message}");
+                            }
+                        }
+                    }
+                };
+
+                btnRefreshAssignments.Click += async (s, e) =>
+                {
+                    bodyPanel.Controls.Clear();
+                    await LoadAssignments(bodyPanel, classId);
+                };
+
+                bodyPanel.Controls.Add(btnRefreshAssignments);
+                bodyPanel.Controls.Add(btnAddAssignment);
 
                 foreach (var assignment in assignments)
                 {
                     SiticonePanel assignmentBox = new SiticonePanel
                     {
                         Size = new Size(assignmentBoxWidth, assignmentBoxHeight),
-                        Location = new Point(leftPadding, startY),
+                        Location = new Point(leftPadding, currentY),
                         FillColor = Color.White,
                         BorderRadius = 10,
                         ShadowDecoration = { Enabled = true }
@@ -326,8 +409,8 @@ namespace Student_Management_System
                     {
                         Text = $"Instructions: {assignment["Instructions"]}",
                         Font = new Font("Segoe UI", 12, FontStyle.Regular),
-                        Location = new Point(10, 50),
-                        MaximumSize = new Size(assignmentBox.Width - 20, 0),
+                        Location = new Point(10, 45),
+                        MaximumSize = new Size(assignmentBox.Width - 220, 60), 
                         AutoSize = true
                     };
 
@@ -336,19 +419,19 @@ namespace Student_Management_System
                         Text = $"Posted: {assignment["DatePosted"]} | Due: {assignment["DateOfSubmission"]}",
                         Font = new Font("Segoe UI", 11, FontStyle.Italic),
                         ForeColor = Color.Gray,
-                        Location = new Point(10, assignmentBoxHeight - 30),
+                        Location = new Point(10, assignmentBoxHeight - 25),
                         AutoSize = true
                     };
 
                     SiticoneButton btnEdit = new SiticoneButton
                     {
                         Text = "Edit",
-                        Size = new Size(90, 40),
-                        Location = new Point(assignmentBox.Width - 200, assignmentBox.Height - 50),
+                        Size = new Size(90, 35),
+                        Location = new Point(assignmentBox.Width - 200, 15),
                         FillColor = Color.MediumSeaGreen,
                         ForeColor = Color.White,
                         BorderRadius = 8,
-                        Font = new Font("Segoe UI", 11, FontStyle.Bold)
+                        Font = new Font("Segoe UI", 10, FontStyle.Bold)
                     };
 
                     btnEdit.Click += async (s, e) =>
@@ -394,9 +477,7 @@ namespace Student_Management_System
 
                                     if (putResponse.IsSuccessStatusCode)
                                     {
-                                        bodyPanel.Controls.Clear();
-                                        await LoadAssignments(bodyPanel, classId); 
-                                        MessageBox.Show("Assignment updated successfully!"); 
+                                        MessageBox.Show("Assignment updated successfully!");
                                     }
                                     else
                                     {
@@ -414,17 +495,54 @@ namespace Student_Management_System
                     SiticoneButton btnDelete = new SiticoneButton
                     {
                         Text = "Delete",
-                        Size = new Size(90, 40),
-                        Location = new Point(assignmentBox.Width - 100, assignmentBox.Height - 50),
+                        Size = new Size(90, 35),
+                        Location = new Point(assignmentBox.Width - 100, 15),
                         FillColor = Color.IndianRed,
                         ForeColor = Color.White,
                         BorderRadius = 8,
-                        Font = new Font("Segoe UI", 11, FontStyle.Bold)
+                        Font = new Font("Segoe UI", 10, FontStyle.Bold)
                     };
 
-                    btnDelete.Click += (s, e) =>
+                    btnDelete.Click += async (s, e) =>
                     {
-                        MessageBox.Show($"Delete clicked for: {assignment["Title"]}");
+                        var confirmResult = MessageBox.Show(
+                            $"Are you sure you want to delete the assignment '{assignment["Title"]}'?",
+                            "Confirm Delete",
+                            MessageBoxButtons.YesNo,
+                            MessageBoxIcon.Warning
+                        );
+
+                        if (confirmResult == DialogResult.Yes)
+                        {
+                            int assignmentId = assignment["AssignmentID"] != null ? (int)assignment["AssignmentID"] : -1;
+                            if (assignmentId == -1)
+                            {
+                                MessageBox.Show("Invalid assignment ID.");
+                                return;
+                            }
+
+                            try
+                            {
+                                string deleteUrl = $"http://localhost:8000/api/delete_assignment/{assignmentId}/";
+                                HttpResponseMessage deleteResponse = await client.DeleteAsync(deleteUrl);
+                                string responseContent = await deleteResponse.Content.ReadAsStringAsync();
+
+                                if (deleteResponse.IsSuccessStatusCode)
+                                {
+                                    MessageBox.Show("Assignment deleted successfully!");
+                                    bodyPanel.Controls.Clear();
+                                    await LoadAssignments(bodyPanel, classId);
+                                }
+                                else
+                                {
+                                    MessageBox.Show($"Failed to delete assignment. Server response: {responseContent}");
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                MessageBox.Show($"Error deleting assignment: {ex.Message}");
+                            }
+                        }
                     };
 
                     assignmentBox.Controls.Add(lblTitle);
@@ -434,8 +552,12 @@ namespace Student_Management_System
                     assignmentBox.Controls.Add(btnDelete);
 
                     bodyPanel.Controls.Add(assignmentBox);
-                    startY += assignmentBox.Height + spacing;
+
+                    currentY += assignmentBoxHeight + assignmentSpacing;
                 }
+
+                bodyPanel.AutoScroll = true;
+                bodyPanel.AutoScrollMinSize = new Size(0, currentY + 50); 
             }
             catch (Exception ex)
             {
