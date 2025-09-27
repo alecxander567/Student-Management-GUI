@@ -1,28 +1,22 @@
 ﻿using Newtonsoft.Json;
 using Siticone.Desktop.UI.WinForms;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Linq;
 using System.Net.Http;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Student_Management_System
 {
     public partial class frmSignup : Form
     {
-
         private SiticoneTextBox txtFullName;
         private SiticoneTextBox txtEmail;
         private SiticoneTextBox txtPassword;
-        private SiticoneComboBox cmbRole;
         private SiticoneButton btnRegister;
         private SiticoneButton btnCancel;
         private SiticoneHtmlLabel lblTitle;
+
         public frmSignup()
         {
             InitializeComponent();
@@ -86,20 +80,6 @@ namespace Student_Management_System
                 240
             );
 
-            cmbRole = new SiticoneComboBox
-            {
-                Font = new Font("Segoe UI", 12),
-                Size = new Size(320, 45),
-                BorderRadius = 8,
-                DropDownStyle = ComboBoxStyle.DropDownList
-            };
-            cmbRole.Items.AddRange(new object[] { "Student", "Teacher" });
-            this.Controls.Add(cmbRole);
-            cmbRole.Location = new Point(
-                (this.ClientSize.Width - cmbRole.Width) / 2,
-                300
-            );
-
             btnRegister = new SiticoneButton
             {
                 Text = "Register",
@@ -138,10 +118,8 @@ namespace Student_Management_System
             string fullName = txtFullName.Text.Trim();
             string email = txtEmail.Text.Trim();
             string password = txtPassword.Text;
-            string role = cmbRole.SelectedItem?.ToString();
 
-            if (string.IsNullOrEmpty(fullName) || string.IsNullOrEmpty(email) ||
-                string.IsNullOrEmpty(password) || string.IsNullOrEmpty(role))
+            if (string.IsNullOrEmpty(fullName) || string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
             {
                 MessageBox.Show("Please fill all fields.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
@@ -151,8 +129,7 @@ namespace Student_Management_System
             {
                 full_name = fullName,
                 email = email,
-                password = password,
-                role = role
+                password = password
             };
             string jsonPayload = JsonConvert.SerializeObject(payload);
 
@@ -186,6 +163,7 @@ namespace Student_Management_System
                 }
             }
         }
+
         private void BtnCancel_Click(object sender, EventArgs e)
         {
             frmLogin loginForm = new frmLogin();

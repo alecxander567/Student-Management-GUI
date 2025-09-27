@@ -427,7 +427,7 @@ namespace Student_Management_System
                     {
                         Text = "Edit",
                         Size = new Size(90, 35),
-                        Location = new Point(assignmentBox.Width - 200, 15),
+                        Location = new Point(assignmentBox.Width - 200, assignmentBox.Height - 45),
                         FillColor = Color.MediumSeaGreen,
                         ForeColor = Color.White,
                         BorderRadius = 8,
@@ -440,7 +440,6 @@ namespace Student_Management_System
                         {
                             editForm.TxtTitle.Text = assignment["Title"];
                             editForm.TxtInstructions.Text = assignment["Instructions"];
-
                             if (DateTime.TryParse(assignment["DateOfSubmission"]?.ToString(), out DateTime dueDate))
                                 editForm.DtpDueDate.Value = dueDate;
                             else
@@ -472,16 +471,22 @@ namespace Student_Management_System
                                     var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
 
                                     string updateUrl = $"http://localhost:8000/api/update_assignment/{assignmentId}/";
-                                    HttpResponseMessage putResponse = await client.PutAsync(updateUrl, content);
-                                    string responseContent = await putResponse.Content.ReadAsStringAsync();
 
-                                    if (putResponse.IsSuccessStatusCode)
+                                    using (HttpClient httpClient = new HttpClient())
                                     {
-                                        MessageBox.Show("Assignment updated successfully!");
-                                    }
-                                    else
-                                    {
-                                        MessageBox.Show($"Failed to update assignment. Server response: {responseContent}");
+                                        HttpResponseMessage putResponse = await httpClient.PutAsync(updateUrl, content);
+                                        string responseContent = await putResponse.Content.ReadAsStringAsync();
+
+                                        if (putResponse.IsSuccessStatusCode)
+                                        {
+                                            MessageBox.Show("Assignment updated successfully!");
+                                            bodyPanel.Controls.Clear();
+                                            await LoadAssignments(bodyPanel, classId);
+                                        }
+                                        else
+                                        {
+                                            MessageBox.Show($"Failed to update assignment. Server response: {responseContent}");
+                                        }
                                     }
                                 }
                                 catch (Exception ex)
@@ -496,7 +501,7 @@ namespace Student_Management_System
                     {
                         Text = "Delete",
                         Size = new Size(90, 35),
-                        Location = new Point(assignmentBox.Width - 100, 15),
+                        Location = new Point(assignmentBox.Width - 100, assignmentBox.Height - 45),
                         FillColor = Color.IndianRed,
                         ForeColor = Color.White,
                         BorderRadius = 8,
