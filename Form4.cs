@@ -1,4 +1,5 @@
-﻿using Siticone.Desktop.UI.WinForms;
+﻿using Newtonsoft.Json.Linq;
+using Siticone.Desktop.UI.WinForms;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -11,16 +12,17 @@ namespace Student_Management_System
 {
     public partial class frmClass : Form
     {
-
         private readonly HttpClient client = new HttpClient();
+        private dynamic currentClass; // Add this field
 
         public frmClass(dynamic cls)
         {
             InitializeComponent();
+            currentClass = cls; // Store the class
             LoadClassDetails(cls);
         }
 
-        private void LoadClassDetails(dynamic cls)
+        private async void LoadClassDetails(dynamic cls)
         {
             this.Text = $"Classroom - {cls.ClassName}";
             this.StartPosition = FormStartPosition.CenterScreen;
@@ -75,8 +77,8 @@ namespace Student_Management_System
                     btn.Click += (s, e) =>
                     {
                         frmInstructorClasses parentForm = new frmInstructorClasses();
-                        this.Hide();          
-                        parentForm.Show();  
+                        this.Hide();
+                        parentForm.Show();
                     };
                 }
 
@@ -88,60 +90,16 @@ namespace Student_Management_System
             {
                 Dock = DockStyle.Fill,
                 FillColor = Color.LightGray,
-                Padding = new Padding(30, 30, 30, 100) 
+                Padding = new Padding(30, 30, 30, 100)
             };
             this.Controls.Add(bodyPanel);
-
-            string[] boxLabels = { "No. of Students", "Total Activities Today", "Assignments", "Total Submissions" };
-            int boxHeight = 100;
-            int spacing = 20;
-            int startX = sidebarPanel.Width + 20;
-            int startY = 120;
-
-            int totalAvailableWidth = this.ClientSize.Width - startX - 40;
-            int boxWidth = (totalAvailableWidth - (spacing * (boxLabels.Length - 1))) / boxLabels.Length;
-
-            for (int i = 0; i < boxLabels.Length; i++)
-            {
-                int boxX = startX + i * (boxWidth + spacing);
-
-                SiticonePanel dashBox = new SiticonePanel
-                {
-                    Size = new Size(boxWidth, boxHeight),
-                    Location = new Point(boxX, startY),
-                    FillColor = Color.White,
-                    BorderRadius = 10,
-                    ShadowDecoration = { Enabled = true }
-                };
-
-                SiticoneHtmlLabel lblBox = new SiticoneHtmlLabel
-                {
-                    Text = boxLabels[i],
-                    Font = new Font("Segoe UI", 12, FontStyle.Bold),
-                    ForeColor = Color.Black,
-                    Location = new Point(10, 10),
-                    AutoSize = true
-                };
-
-                SiticoneHtmlLabel lblValue = new SiticoneHtmlLabel
-                {
-                    Text = "0",
-                    Font = new Font("Segoe UI", 24, FontStyle.Bold),
-                    ForeColor = Color.MediumSeaGreen,
-                    Location = new Point(10, 40),
-                    AutoSize = true
-                };
-
-                dashBox.Controls.Add(lblBox);
-                dashBox.Controls.Add(lblValue);
-                bodyPanel.Controls.Add(dashBox);
-            }
 
             int buttonWidth = 180;
             int buttonHeight = 50;
             int rightPadding = 40;
             int buttonSpacing = 10;
-
+            int boxHeight = 100;
+            int startY = 120;
             int buttonsY = startY + boxHeight + 20;
 
             SiticoneButton btnAddAssignment = new SiticoneButton
@@ -163,27 +121,30 @@ namespace Student_Management_System
                     {
                         var assignmentData = new
                         {
-                            ClassID = cls.ClassID,
+                            ClassID = currentClass.ClassID,
                             Title = form.AssignmentTitle,
                             Instructions = form.Instructions,
-                            DatePosted = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"), 
-                            DateOfSubmission = form.DateOfSubmission.ToString("yyyy-MM-ddTHH:mm:ss.fffZ") 
+                            DatePosted = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
+                            DateOfSubmission = form.DateOfSubmission.ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
                         };
 
                         string json = Newtonsoft.Json.JsonConvert.SerializeObject(assignmentData);
 
                         try
                         {
-                            using (HttpClient client = new HttpClient())
+                            using (HttpClient newClient = new HttpClient())
                             {
                                 var content = new StringContent(json, Encoding.UTF8, "application/json");
-                                HttpResponseMessage response = await client.PostAsync("http://localhost:8000/api/assignments/", content);
+                                HttpResponseMessage response = await newClient.PostAsync("http://localhost:8000/api/assignments/", content);
 
                                 string responseContent = await response.Content.ReadAsStringAsync();
 
                                 if (response.IsSuccessStatusCode)
                                 {
                                     MessageBox.Show("Assignment added successfully!");
+                                    bodyPanel.Controls.Clear();
+                                    await AddDashboardBoxes(bodyPanel, Convert.ToInt32(currentClass.ClassID), currentClass.ClassName);
+                                    await LoadAssignments(bodyPanel, Convert.ToInt32(currentClass.ClassID));
                                 }
                                 else
                                 {
@@ -209,34 +170,61 @@ namespace Student_Management_System
                 BorderRadius = 8,
                 Font = new Font("Segoe UI", 10, FontStyle.Bold)
             };
-
             btnRefreshAssignments.Click += async (s, e) =>
             {
-                bodyPanel.Controls.Clear(); 
-                AddDashboardBoxes(bodyPanel); 
-                bodyPanel.Controls.Add(btnAddAssignment);
-                bodyPanel.Controls.Add(btnRefreshAssignments); 
-                await LoadAssignments(bodyPanel, Convert.ToInt32(cls.ClassID)); 
+                bodyPanel.Controls.Clear();
+                await AddDashboardBoxes(bodyPanel, Convert.ToInt32(currentClass.ClassID), (string)currentClass.ClassName);
+                await LoadAssignments(bodyPanel, Convert.ToInt32(currentClass.ClassID));
             };
-
 
             bodyPanel.AutoScroll = true;
             bodyPanel.Controls.Add(btnRefreshAssignments);
             bodyPanel.Controls.Add(btnAddAssignment);
-            AddDashboardBoxes(bodyPanel);
-            LoadAssignments(bodyPanel, Convert.ToInt32(cls.ClassID));
+            await AddDashboardBoxes(bodyPanel, Convert.ToInt32(cls.ClassID), (string)cls.ClassName);
+            await LoadAssignments(bodyPanel, Convert.ToInt32(cls.ClassID));
         }
 
-        private void AddDashboardBoxes(SiticonePanel bodyPanel)
+        private async Task AddDashboardBoxes(SiticonePanel bodyPanel, int classId, string className)
         {
-            string[] boxLabels = { "No. of Students", "Total Activities Today", "Assignments", "Total Submissions" };
+            string[] boxLabels = { "No. of Students", "Total Assignments", "Total Classes", "Class Schedule" };
             int boxHeight = 100;
             int spacing = 20;
-            int startX = 220; 
+            int startX = 220;
             int startY = 120;
 
             int totalAvailableWidth = this.ClientSize.Width - startX - 40;
             int boxWidth = (totalAvailableWidth - (spacing * (boxLabels.Length - 1))) / boxLabels.Length;
+
+            // Fetch data from Django backend
+            var httpClient = new HttpClient();
+            string apiUrl = "http://localhost:8000/api/dashboard/";
+            var response = await httpClient.GetStringAsync(apiUrl);
+            var jsonData = JObject.Parse(response);
+
+            // Extract values from JSON
+            int noOfStudents = 0; // You'll need a separate API endpoint for this
+            int totalAssignments = (int)jsonData["total_assignments"];
+            int totalClasses = (int)jsonData["total_classes"];
+            var classSchedules = jsonData["class_schedules"];
+
+            // Find schedule for the specific class
+            string scheduleText = "";
+            foreach (var clsSchedule in classSchedules)
+            {
+                if ((string)clsSchedule["ClassName"] == className)
+                {
+                    scheduleText = $"{clsSchedule["ScheduleDays"]} {clsSchedule["ScheduleTime"]}";
+                    break;
+                }
+            }
+
+            // Values for each box
+            string[] values = {
+        noOfStudents.ToString(),
+        totalAssignments.ToString(),
+        totalClasses.ToString(),
+        scheduleText
+    };
 
             for (int i = 0; i < boxLabels.Length; i++)
             {
@@ -260,10 +248,15 @@ namespace Student_Management_System
                     AutoSize = true
                 };
 
+                // Use smaller font for Class Schedule
+                Font valueFont = (boxLabels[i] == "Class Schedule")
+                    ? new Font("Segoe UI", 10, FontStyle.Bold)
+                    : new Font("Segoe UI", 24, FontStyle.Bold);
+
                 SiticoneHtmlLabel lblValue = new SiticoneHtmlLabel
                 {
-                    Text = "0",
-                    Font = new Font("Segoe UI", 24, FontStyle.Bold),
+                    Text = values[i],
+                    Font = valueFont,
                     ForeColor = Color.MediumSeaGreen,
                     Location = new Point(10, 40),
                     AutoSize = true
@@ -297,13 +290,14 @@ namespace Student_Management_System
                 int dashboardBoxesHeight = 100;
                 int currentY = 120 + dashboardBoxesHeight + spacingButtons + buttonsHeight + spacingButtons;
 
-                int leftPadding = 220; 
+                int leftPadding = 220;
                 int rightPadding = 40;
                 int assignmentBoxWidth = Math.Max(800, bodyPanel.Width - leftPadding - rightPadding);
                 int assignmentBoxHeight = 150;
                 int assignmentSpacing = 20;
 
-                AddDashboardBoxes(bodyPanel);
+                // REMOVE THIS LINE - Dashboard boxes are already added in LoadClassDetails
+                // AddDashboardBoxes(bodyPanel);
 
                 int buttonWidth = 180;
                 int buttonHeight = 50;
@@ -359,6 +353,7 @@ namespace Student_Management_System
                                     {
                                         MessageBox.Show("Assignment added successfully!");
                                         bodyPanel.Controls.Clear();
+                                        await AddDashboardBoxes(bodyPanel, classId, currentClass.ClassName);
                                         await LoadAssignments(bodyPanel, classId);
                                     }
                                     else
@@ -379,6 +374,7 @@ namespace Student_Management_System
                 btnRefreshAssignments.Click += async (s, e) =>
                 {
                     bodyPanel.Controls.Clear();
+                    await AddDashboardBoxes(bodyPanel, classId, currentClass.ClassName);
                     await LoadAssignments(bodyPanel, classId);
                 };
 
@@ -410,7 +406,7 @@ namespace Student_Management_System
                         Text = $"Instructions: {assignment["Instructions"]}",
                         Font = new Font("Segoe UI", 12, FontStyle.Regular),
                         Location = new Point(10, 45),
-                        MaximumSize = new Size(assignmentBox.Width - 220, 60), 
+                        MaximumSize = new Size(assignmentBox.Width - 220, 60),
                         AutoSize = true
                     };
 
@@ -481,6 +477,7 @@ namespace Student_Management_System
                                         {
                                             MessageBox.Show("Assignment updated successfully!");
                                             bodyPanel.Controls.Clear();
+                                            await AddDashboardBoxes(bodyPanel, classId, currentClass.ClassName);
                                             await LoadAssignments(bodyPanel, classId);
                                         }
                                         else
@@ -536,6 +533,7 @@ namespace Student_Management_System
                                 {
                                     MessageBox.Show("Assignment deleted successfully!");
                                     bodyPanel.Controls.Clear();
+                                    await AddDashboardBoxes(bodyPanel, classId, currentClass.ClassName);
                                     await LoadAssignments(bodyPanel, classId);
                                 }
                                 else
@@ -562,7 +560,7 @@ namespace Student_Management_System
                 }
 
                 bodyPanel.AutoScroll = true;
-                bodyPanel.AutoScrollMinSize = new Size(0, currentY + 50); 
+                bodyPanel.AutoScrollMinSize = new Size(0, currentY + 50);
             }
             catch (Exception ex)
             {
