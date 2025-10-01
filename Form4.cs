@@ -13,12 +13,12 @@ namespace Student_Management_System
     public partial class frmClass : Form
     {
         private readonly HttpClient client = new HttpClient();
-        private dynamic currentClass; // Add this field
+        private dynamic currentClass; 
 
         public frmClass(dynamic cls)
         {
             InitializeComponent();
-            currentClass = cls; // Store the class
+            currentClass = cls; 
             LoadClassDetails(cls);
         }
 
@@ -143,7 +143,7 @@ namespace Student_Management_System
                                 {
                                     MessageBox.Show("Assignment added successfully!");
                                     bodyPanel.Controls.Clear();
-                                    await AddDashboardBoxes(bodyPanel, Convert.ToInt32(currentClass.ClassID), currentClass.ClassName);
+                                    await AddDashboardBoxes(bodyPanel, Convert.ToInt32(currentClass.ClassID), (string)currentClass.ClassName);  // ✅ Added cast
                                     await LoadAssignments(bodyPanel, Convert.ToInt32(currentClass.ClassID));
                                 }
                                 else
@@ -195,19 +195,16 @@ namespace Student_Management_System
             int totalAvailableWidth = this.ClientSize.Width - startX - 40;
             int boxWidth = (totalAvailableWidth - (spacing * (boxLabels.Length - 1))) / boxLabels.Length;
 
-            // Fetch data from Django backend
             var httpClient = new HttpClient();
             string apiUrl = "http://localhost:8000/api/dashboard/";
             var response = await httpClient.GetStringAsync(apiUrl);
             var jsonData = JObject.Parse(response);
 
-            // Extract values from JSON
-            int noOfStudents = 0; // You'll need a separate API endpoint for this
+            int noOfStudents = 0; 
             int totalAssignments = (int)jsonData["total_assignments"];
             int totalClasses = (int)jsonData["total_classes"];
             var classSchedules = jsonData["class_schedules"];
 
-            // Find schedule for the specific class
             string scheduleText = "";
             foreach (var clsSchedule in classSchedules)
             {
@@ -218,13 +215,12 @@ namespace Student_Management_System
                 }
             }
 
-            // Values for each box
             string[] values = {
-        noOfStudents.ToString(),
-        totalAssignments.ToString(),
-        totalClasses.ToString(),
-        scheduleText
-    };
+                noOfStudents.ToString(),
+                totalAssignments.ToString(),
+                totalClasses.ToString(),
+                scheduleText
+            };
 
             for (int i = 0; i < boxLabels.Length; i++)
             {
@@ -248,7 +244,6 @@ namespace Student_Management_System
                     AutoSize = true
                 };
 
-                // Use smaller font for Class Schedule
                 Font valueFont = (boxLabels[i] == "Class Schedule")
                     ? new Font("Segoe UI", 10, FontStyle.Bold)
                     : new Font("Segoe UI", 24, FontStyle.Bold);
@@ -295,9 +290,6 @@ namespace Student_Management_System
                 int assignmentBoxWidth = Math.Max(800, bodyPanel.Width - leftPadding - rightPadding);
                 int assignmentBoxHeight = 150;
                 int assignmentSpacing = 20;
-
-                // REMOVE THIS LINE - Dashboard boxes are already added in LoadClassDetails
-                // AddDashboardBoxes(bodyPanel);
 
                 int buttonWidth = 180;
                 int buttonHeight = 50;
@@ -353,7 +345,7 @@ namespace Student_Management_System
                                     {
                                         MessageBox.Show("Assignment added successfully!");
                                         bodyPanel.Controls.Clear();
-                                        await AddDashboardBoxes(bodyPanel, classId, currentClass.ClassName);
+                                        await AddDashboardBoxes(bodyPanel, classId, (string)currentClass.ClassName);
                                         await LoadAssignments(bodyPanel, classId);
                                     }
                                     else
@@ -477,7 +469,7 @@ namespace Student_Management_System
                                         {
                                             MessageBox.Show("Assignment updated successfully!");
                                             bodyPanel.Controls.Clear();
-                                            await AddDashboardBoxes(bodyPanel, classId, currentClass.ClassName);
+                                            await AddDashboardBoxes(bodyPanel, classId, (string)currentClass.ClassName);
                                             await LoadAssignments(bodyPanel, classId);
                                         }
                                         else
@@ -533,7 +525,7 @@ namespace Student_Management_System
                                 {
                                     MessageBox.Show("Assignment deleted successfully!");
                                     bodyPanel.Controls.Clear();
-                                    await AddDashboardBoxes(bodyPanel, classId, currentClass.ClassName);
+                                    await AddDashboardBoxes(bodyPanel, classId, (string)currentClass.ClassName);
                                     await LoadAssignments(bodyPanel, classId);
                                 }
                                 else
