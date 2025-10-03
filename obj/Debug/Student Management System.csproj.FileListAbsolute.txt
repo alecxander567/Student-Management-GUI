@@ -37,3 +37,4 @@ C:\Users\Lenovo\source\repos\Student Management System\Student Management System
 C:\Users\Lenovo\source\repos\Student Management System\Student Management System\bin\Debug\System.Threading.Tasks.Extensions.xml
 C:\Users\Lenovo\source\repos\Student Management System\Student Management System\bin\Debug\System.ValueTuple.xml
 C:\Users\Lenovo\source\repos\Student Management System\Student Management System\obj\Debug\Student_Management_System.frmAssignment.resources
+C:\Users\Lenovo\source\repos\Student Management System\Student Management System\obj\Debug\Student_Management_System.frmStudent.resources

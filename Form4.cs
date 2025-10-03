@@ -12,13 +12,15 @@ namespace Student_Management_System
 {
     public partial class frmClass : Form
     {
+        private SiticonePanel bodyPanel;
         private readonly HttpClient client = new HttpClient();
-        private dynamic currentClass; 
+        private dynamic currentClass;
+        private SiticoneButton activeMenuButton;
 
         public frmClass(dynamic cls)
         {
             InitializeComponent();
-            currentClass = cls; 
+            currentClass = cls;
             LoadClassDetails(cls);
         }
 
@@ -72,7 +74,42 @@ namespace Student_Management_System
                     Font = new Font("Segoe UI", 10, FontStyle.Bold)
                 };
 
-                if (menu == "Back to Classes")
+                if (menu == "Dashboard")
+                {
+                    btn.Click += async (s, e) =>
+                    {
+                        SetActiveMenuButton((SiticoneButton)s);
+                        await ShowDashboard(Convert.ToInt32(currentClass.ClassID), (string)currentClass.ClassName);
+                    };
+                    activeMenuButton = btn;
+                    btn.FillColor = Color.MediumSeaGreen;
+                }
+                else if (menu == "Student List")
+                {
+                    btn.Click += async (s, e) =>
+                    {
+                        SetActiveMenuButton((SiticoneButton)s);
+                        await ShowStudentList(Convert.ToInt32(currentClass.ClassID));
+                    };
+                }
+                else if (menu == "Assignments & Activities")
+                {
+                    btn.Click += async (s, e) =>
+                    {
+                        SetActiveMenuButton((SiticoneButton)s);
+                        bodyPanel.Controls.Clear();
+                        await LoadAssignments(bodyPanel, Convert.ToInt32(currentClass.ClassID));
+                    };
+                }
+                else if (menu == "Settings")
+                {
+                    btn.Click += (s, e) =>
+                    {
+                        SetActiveMenuButton((SiticoneButton)s);
+                        ShowSettings();
+                    };
+                }
+                else if (menu == "Back to Classes")
                 {
                     btn.Click += (s, e) =>
                     {
@@ -86,11 +123,12 @@ namespace Student_Management_System
                 topOffset += 60;
             }
 
-            SiticonePanel bodyPanel = new SiticonePanel
+            bodyPanel = new SiticonePanel
             {
                 Dock = DockStyle.Fill,
                 FillColor = Color.LightGray,
-                Padding = new Padding(30, 30, 30, 100)
+                Padding = new Padding(30, 30, 30, 100),
+                AutoScroll = true
             };
             this.Controls.Add(bodyPanel);
 
@@ -143,7 +181,7 @@ namespace Student_Management_System
                                 {
                                     MessageBox.Show("Assignment added successfully!");
                                     bodyPanel.Controls.Clear();
-                                    await AddDashboardBoxes(bodyPanel, Convert.ToInt32(currentClass.ClassID), (string)currentClass.ClassName);  // ✅ Added cast
+                                    await AddDashboardBoxes(bodyPanel, Convert.ToInt32(currentClass.ClassID), (string)currentClass.ClassName);
                                     await LoadAssignments(bodyPanel, Convert.ToInt32(currentClass.ClassID));
                                 }
                                 else
@@ -184,6 +222,16 @@ namespace Student_Management_System
             await LoadAssignments(bodyPanel, Convert.ToInt32(cls.ClassID));
         }
 
+        private void SetActiveMenuButton(SiticoneButton clickedButton)
+        {
+            if (activeMenuButton != null && activeMenuButton != clickedButton)
+            {
+                activeMenuButton.FillColor = Color.FromArgb(57, 62, 70);
+            }
+            activeMenuButton = clickedButton;
+            activeMenuButton.FillColor = Color.MediumSeaGreen;
+        }
+
         private async Task AddDashboardBoxes(SiticonePanel bodyPanel, int classId, string className)
         {
             string[] boxLabels = { "No. of Students", "Total Assignments", "Total Classes", "Class Schedule" };
@@ -196,14 +244,15 @@ namespace Student_Management_System
             int boxWidth = (totalAvailableWidth - (spacing * (boxLabels.Length - 1))) / boxLabels.Length;
 
             var httpClient = new HttpClient();
+
             string apiUrl = "http://localhost:8000/api/dashboard/";
             var response = await httpClient.GetStringAsync(apiUrl);
             var jsonData = JObject.Parse(response);
 
-            int noOfStudents = 0; 
             int totalAssignments = (int)jsonData["total_assignments"];
             int totalClasses = (int)jsonData["total_classes"];
             var classSchedules = jsonData["class_schedules"];
+            int classAssignments = 0;
 
             string scheduleText = "";
             foreach (var clsSchedule in classSchedules)
@@ -211,13 +260,19 @@ namespace Student_Management_System
                 if ((string)clsSchedule["ClassName"] == className)
                 {
                     scheduleText = $"{clsSchedule["ScheduleDays"]} {clsSchedule["ScheduleTime"]}";
+                    classAssignments = (int)clsSchedule["AssignmentCount"];
                     break;
                 }
             }
 
+            string studentsUrl = $"http://localhost:8000/api/students/?class_id={classId}";
+            var studentsResponse = await httpClient.GetStringAsync(studentsUrl);
+            var studentsList = Newtonsoft.Json.JsonConvert.DeserializeObject<List<dynamic>>(studentsResponse);
+            int noOfStudents = studentsList.Count;
+
             string[] values = {
                 noOfStudents.ToString(),
-                totalAssignments.ToString(),
+                classAssignments.ToString(),
                 totalClasses.ToString(),
                 scheduleText
             };
@@ -558,6 +613,148 @@ namespace Student_Management_System
             {
                 MessageBox.Show($"Error fetching assignments: {ex.Message}");
             }
+        }
+
+        private async Task ShowDashboard(int classId, string className)
+        {
+            bodyPanel.Controls.Clear();
+            await AddDashboardBoxes(bodyPanel, classId, className);
+            await LoadAssignments(bodyPanel, classId);
+        }
+
+        private async Task ShowStudentList(int classId)
+        {
+            bodyPanel.Controls.Clear();
+
+            var httpClient = new HttpClient();
+            string url = $"http://localhost:8000/api/students/?class_id={classId}";
+            var responseString = await httpClient.GetStringAsync(url);
+            var students = Newtonsoft.Json.JsonConvert.DeserializeObject<List<dynamic>>(responseString);
+
+            int tableTop = 120;           
+            int tableLeft = 220;      
+            int tableWidth = bodyPanel.ClientSize.Width - tableLeft - 20;
+
+            int tableHeight = bodyPanel.ClientSize.Height - tableTop - 120; 
+
+            DataGridView dgvStudents = new DataGridView
+            {
+                Location = new Point(tableLeft, tableTop),
+                Size = new Size(tableWidth, tableHeight),
+                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
+                ReadOnly = true,
+                AllowUserToAddRows = false,
+                SelectionMode = DataGridViewSelectionMode.FullRowSelect,
+                BackgroundColor = Color.White,
+                BorderStyle = BorderStyle.None,
+                Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right
+            };
+
+            dgvStudents.Columns.Add("StudentID", "ID");
+            dgvStudents.Columns.Add("FirstName", "First Name");
+            dgvStudents.Columns.Add("LastName", "Last Name");
+            dgvStudents.Columns.Add("Sex", "Sex");
+            dgvStudents.Columns.Add("Department", "Department");
+            dgvStudents.Columns.Add("YearLevel", "Year Level");
+
+            dgvStudents.ColumnHeadersDefaultCellStyle.BackColor = Color.MediumSeaGreen;
+            dgvStudents.ColumnHeadersDefaultCellStyle.ForeColor = Color.White;
+            dgvStudents.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 12, FontStyle.Bold); // increased font size
+            dgvStudents.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dgvStudents.EnableHeadersVisualStyles = false;
+            dgvStudents.RowHeadersVisible = false;
+
+            dgvStudents.DefaultCellStyle.Font = new Font("Segoe UI", 11, FontStyle.Regular); // increased font size
+
+            int serialNumber = 1;
+            foreach (var student in students)
+            {
+                dgvStudents.Rows.Add(
+                    serialNumber++,
+                    student["FirstName"].ToString(),
+                    student["LastName"].ToString(),
+                    student["Sex"].ToString(),
+                    student["Department"].ToString(),
+                    student["YearLevel"].ToString()
+                );
+            }
+
+            bodyPanel.Controls.Add(dgvStudents);
+
+            SiticoneButton btnAddStudent = new SiticoneButton
+            {
+                Text = "Add New Student",
+                Size = new Size(180, 50),
+                Location = new Point(
+                    dgvStudents.Right - 180,          
+                    dgvStudents.Bottom + 10        
+                ),
+                FillColor = Color.MediumSeaGreen,
+                ForeColor = Color.White,
+                BorderRadius = 8,
+                Font = new Font("Segoe UI", 12, FontStyle.Bold), 
+                Anchor = AnchorStyles.Right
+            };
+
+            btnAddStudent.Click += async (s, e) =>
+            {
+                using (var form = new frmStudent())
+                {
+                    if (form.ShowDialog() == DialogResult.OK)
+                    {
+                        var studentData = new
+                        {
+                            FirstName = form.FirstName,
+                            LastName = form.LastName,
+                            Sex = form.Sex,
+                            Department = form.Department,
+                            YearLevel = form.YearLevel,
+                            ClassID = classId
+                        };
+
+                        string json = Newtonsoft.Json.JsonConvert.SerializeObject(studentData);
+
+                        try
+                        {
+                            using (HttpClient newClient = new HttpClient())
+                            {
+                                var content = new StringContent(json, Encoding.UTF8, "application/json");
+                                var response = await newClient.PostAsync("http://localhost:8000/api/add_student/", content);
+
+                                if (response.IsSuccessStatusCode)
+                                {
+                                    MessageBox.Show("Student added successfully!");
+                                    await ShowStudentList(classId);
+                                }
+                                else
+                                {
+                                    string respContent = await response.Content.ReadAsStringAsync();
+                                    MessageBox.Show($"Failed to add student: {respContent}");
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            MessageBox.Show($"Error: {ex.Message}");
+                        }
+                    }
+                }
+            };
+
+            bodyPanel.Controls.Add(btnAddStudent);
+        }
+
+        private void ShowSettings()
+        {
+            bodyPanel.Controls.Clear();
+            var lbl = new SiticoneHtmlLabel
+            {
+                Text = "⚙️ Settings will go here.",
+                Location = new Point(20, 50),
+                Font = new Font("Segoe UI", 12, FontStyle.Italic),
+                AutoSize = true
+            };
+            bodyPanel.Controls.Add(lbl);
         }
     }
 }
