@@ -7,11 +7,43 @@ namespace Student_Management_System
 {
     public partial class frmStudent : Form
     {
-        public string FirstName => txtFirstName.Text.Trim();
-        public string LastName => txtLastName.Text.Trim();
-        public string Sex => cmbSex.SelectedItem?.ToString();
-        public string Department => txtDepartment.Text.Trim();
-        public int YearLevel => (int)nudYearLevel.Value;
+        public string FirstName
+        {
+            get => txtFirstName.Text.Trim();
+            set => txtFirstName.Text = value;
+        }
+
+        public string LastName
+        {
+            get => txtLastName.Text.Trim();
+            set => txtLastName.Text = value;
+        }
+
+        public string Sex
+        {
+            get => cmbSex.SelectedItem?.ToString();
+            set
+            {
+                if (cmbSex.Items.Contains(value))
+                    cmbSex.SelectedItem = value;
+            }
+        }
+
+        public string Department
+        {
+            get => txtDepartment.Text.Trim();
+            set => txtDepartment.Text = value;
+        }
+
+        public int YearLevel
+        {
+            get => (int)nudYearLevel.Value;
+            set
+            {
+                if (value >= nudYearLevel.Minimum && value <= nudYearLevel.Maximum)
+                    nudYearLevel.Value = value;
+            }
+        }
 
         private SiticoneTextBox txtFirstName;
         private SiticoneTextBox txtLastName;

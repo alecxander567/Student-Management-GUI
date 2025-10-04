@@ -631,11 +631,10 @@ namespace Student_Management_System
             var responseString = await httpClient.GetStringAsync(url);
             var students = Newtonsoft.Json.JsonConvert.DeserializeObject<List<dynamic>>(responseString);
 
-            int tableTop = 120;           
-            int tableLeft = 220;      
+            int tableTop = 120;
+            int tableLeft = 220;
             int tableWidth = bodyPanel.ClientSize.Width - tableLeft - 20;
-
-            int tableHeight = bodyPanel.ClientSize.Height - tableTop - 120; 
+            int tableHeight = bodyPanel.ClientSize.Height - tableTop - 120;
 
             DataGridView dgvStudents = new DataGridView
             {
@@ -659,18 +658,17 @@ namespace Student_Management_System
 
             dgvStudents.ColumnHeadersDefaultCellStyle.BackColor = Color.MediumSeaGreen;
             dgvStudents.ColumnHeadersDefaultCellStyle.ForeColor = Color.White;
-            dgvStudents.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 12, FontStyle.Bold); // increased font size
+            dgvStudents.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 12, FontStyle.Bold);
             dgvStudents.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
             dgvStudents.EnableHeadersVisualStyles = false;
             dgvStudents.RowHeadersVisible = false;
-
-            dgvStudents.DefaultCellStyle.Font = new Font("Segoe UI", 11, FontStyle.Regular); // increased font size
+            dgvStudents.DefaultCellStyle.Font = new Font("Segoe UI", 11, FontStyle.Regular);
 
             int serialNumber = 1;
             foreach (var student in students)
             {
                 dgvStudents.Rows.Add(
-                    serialNumber++,
+                    student["StudentID"].ToString(),
                     student["FirstName"].ToString(),
                     student["LastName"].ToString(),
                     student["Sex"].ToString(),
@@ -686,13 +684,13 @@ namespace Student_Management_System
                 Text = "Add New Student",
                 Size = new Size(180, 50),
                 Location = new Point(
-                    dgvStudents.Right - 180,          
-                    dgvStudents.Bottom + 10        
+                    dgvStudents.Right - 380,
+                    dgvStudents.Bottom + 10
                 ),
                 FillColor = Color.MediumSeaGreen,
                 ForeColor = Color.White,
                 BorderRadius = 8,
-                Font = new Font("Segoe UI", 12, FontStyle.Bold), 
+                Font = new Font("Segoe UI", 12, FontStyle.Bold),
                 Anchor = AnchorStyles.Right
             };
 
@@ -742,6 +740,87 @@ namespace Student_Management_System
             };
 
             bodyPanel.Controls.Add(btnAddStudent);
+
+            SiticoneButton btnEditStudent = new SiticoneButton
+            {
+                Text = "Edit Student",
+                Size = new Size(180, 50),
+                Location = new Point(
+                    btnAddStudent.Right + 10,
+                    dgvStudents.Bottom + 10
+                ),
+                FillColor = Color.Goldenrod,
+                ForeColor = Color.White,
+                BorderRadius = 8,
+                Font = new Font("Segoe UI", 12, FontStyle.Bold),
+                Anchor = AnchorStyles.Right
+            };
+
+            btnEditStudent.Click += async (s, e) =>
+            {
+                if (dgvStudents.SelectedRows.Count == 0)
+                {
+                    MessageBox.Show("Please select a student to edit.");
+                    return;
+                }
+
+                string studentId = dgvStudents.SelectedRows[0].Cells["StudentID"].Value.ToString();
+                string firstName = dgvStudents.SelectedRows[0].Cells["FirstName"].Value.ToString();
+                string lastName = dgvStudents.SelectedRows[0].Cells["LastName"].Value.ToString();
+                string sex = dgvStudents.SelectedRows[0].Cells["Sex"].Value.ToString();
+                string department = dgvStudents.SelectedRows[0].Cells["Department"].Value.ToString();
+                string yearLevel = dgvStudents.SelectedRows[0].Cells["YearLevel"].Value.ToString();
+
+                using (var form = new frmStudent())
+                {
+                    form.FirstName = firstName;
+                    form.LastName = lastName;
+                    form.Sex = sex;
+                    form.Department = department;
+                    form.YearLevel = int.Parse(yearLevel);
+
+                    if (form.ShowDialog() == DialogResult.OK)
+                    {
+                        var updatedData = new
+                        {
+                            FirstName = form.FirstName,
+                            LastName = form.LastName,
+                            Sex = form.Sex,
+                            Department = form.Department,
+                            YearLevel = form.YearLevel,
+                            ClassID = classId
+                        };
+
+                        string json = Newtonsoft.Json.JsonConvert.SerializeObject(updatedData);
+
+                        try
+                        {
+                            using (HttpClient editClient = new HttpClient())
+                            {
+                                var content = new StringContent(json, Encoding.UTF8, "application/json");
+                                var response = await editClient.PostAsync($"http://localhost:8000/api/edit_student/{studentId}/", content);
+
+                                if (response.IsSuccessStatusCode)
+                                {
+                                    MessageBox.Show("Student updated successfully!");
+                                    await ShowStudentList(classId);
+                                }
+                                else
+                                {
+                                    string respContent = await response.Content.ReadAsStringAsync();
+                                    MessageBox.Show($"Failed to update student: {respContent}");
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            MessageBox.Show($"Error: {ex.Message}");
+                        }
+                    }
+                }
+            };
+
+            bodyPanel.Controls.Add(btnEditStudent);
         }
 
         private void ShowSettings()
