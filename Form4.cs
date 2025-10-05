@@ -649,6 +649,9 @@ namespace Student_Management_System
                 Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right
             };
 
+            dgvStudents.Columns.Add("No", "#");
+            dgvStudents.Columns["No"].Width = 50;
+
             dgvStudents.Columns.Add("StudentID", "ID");
             dgvStudents.Columns.Add("FirstName", "First Name");
             dgvStudents.Columns.Add("LastName", "Last Name");
@@ -664,10 +667,11 @@ namespace Student_Management_System
             dgvStudents.RowHeadersVisible = false;
             dgvStudents.DefaultCellStyle.Font = new Font("Segoe UI", 11, FontStyle.Regular);
 
-            int serialNumber = 1;
+            int counter = 1;
             foreach (var student in students)
             {
                 dgvStudents.Rows.Add(
+                    counter++, 
                     student["StudentID"].ToString(),
                     student["FirstName"].ToString(),
                     student["LastName"].ToString(),
@@ -684,7 +688,7 @@ namespace Student_Management_System
                 Text = "Add New Student",
                 Size = new Size(180, 50),
                 Location = new Point(
-                    dgvStudents.Right - 380,
+                    dgvStudents.Right - 570,
                     dgvStudents.Bottom + 10
                 ),
                 FillColor = Color.MediumSeaGreen,
@@ -738,7 +742,6 @@ namespace Student_Management_System
                     }
                 }
             };
-
             bodyPanel.Controls.Add(btnAddStudent);
 
             SiticoneButton btnEditStudent = new SiticoneButton
@@ -819,8 +822,68 @@ namespace Student_Management_System
                     }
                 }
             };
-
             bodyPanel.Controls.Add(btnEditStudent);
+
+            SiticoneButton btnDeleteStudent = new SiticoneButton
+            {
+                Text = "Delete Student",
+                Size = new Size(180, 50),
+                Location = new Point(
+                    btnEditStudent.Right + 10,
+                    dgvStudents.Bottom + 10
+                ),
+                FillColor = Color.IndianRed,
+                ForeColor = Color.White,
+                BorderRadius = 8,
+                Font = new Font("Segoe UI", 12, FontStyle.Bold),
+                Anchor = AnchorStyles.Right
+            };
+
+            btnDeleteStudent.Click += async (s, e) =>
+            {
+                if (dgvStudents.SelectedRows.Count == 0)
+                {
+                    MessageBox.Show("Please select a student to delete.");
+                    return;
+                }
+
+                string studentId = dgvStudents.SelectedRows[0].Cells["StudentID"].Value.ToString();
+
+                var confirm = MessageBox.Show(
+                    "Are you sure you want to delete this student?",
+                    "Confirm Delete",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Warning
+                );
+
+                if (confirm == DialogResult.Yes)
+                {
+                    try
+                    {
+                        using (HttpClient deleteClient = new HttpClient())
+                        {
+                            var response = await deleteClient.PostAsync($"http://localhost:8000/api/delete_student/{studentId}/", null);
+
+                            if (response.IsSuccessStatusCode)
+                            {
+                                MessageBox.Show("Student deleted successfully!");
+                                await ShowStudentList(classId); // ✅ This refresh keeps numbering correct
+                            }
+                            else
+                            {
+                                string respContent = await response.Content.ReadAsStringAsync();
+                                MessageBox.Show($"Failed to delete student: {respContent}");
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Error: {ex.Message}");
+                    }
+                }
+            };
+
+            bodyPanel.Controls.Add(btnDeleteStudent);
         }
 
         private void ShowSettings()
