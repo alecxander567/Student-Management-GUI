@@ -150,5 +150,4 @@ Input validation on all forms to ensure:
 
 ## Screenshots
 
-*Add screenshots of your application here*
 
