@@ -642,14 +642,14 @@ namespace Student_Management_System
                 Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right
             };
 
+            // Columns
             dgvStudents.Columns.Add("No", "#");
             dgvStudents.Columns["No"].Width = 50;
 
-            dgvStudents.Columns.Add("StudentID", "ID");
             dgvStudents.Columns.Add("FirstName", "First Name");
             dgvStudents.Columns.Add("LastName", "Last Name");
+            dgvStudents.Columns.Add("Course", "Course");
             dgvStudents.Columns.Add("Sex", "Sex");
-            dgvStudents.Columns.Add("Department", "Department");
             dgvStudents.Columns.Add("YearLevel", "Year Level");
 
             dgvStudents.ColumnHeadersDefaultCellStyle.BackColor = Color.MediumSeaGreen;
@@ -664,12 +664,11 @@ namespace Student_Management_System
             foreach (var student in students)
             {
                 dgvStudents.Rows.Add(
-                    counter++, 
-                    student["StudentID"].ToString(),
+                    counter++,
                     student["FirstName"].ToString(),
                     student["LastName"].ToString(),
+                    student["Department"].ToString(), // assuming Department field is now treated as Course
                     student["Sex"].ToString(),
-                    student["Department"].ToString(),
                     student["YearLevel"].ToString()
                 );
             }
