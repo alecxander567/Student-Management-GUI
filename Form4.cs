@@ -642,10 +642,13 @@ namespace Student_Management_System
                 Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right
             };
 
-            // Columns
+            // Hidden StudentID column
+            dgvStudents.Columns.Add("StudentID", "ID");
+            dgvStudents.Columns["StudentID"].Visible = false;
+
+            // Other columns
             dgvStudents.Columns.Add("No", "#");
             dgvStudents.Columns["No"].Width = 50;
-
             dgvStudents.Columns.Add("FirstName", "First Name");
             dgvStudents.Columns.Add("LastName", "Last Name");
             dgvStudents.Columns.Add("Course", "Course");
@@ -660,14 +663,16 @@ namespace Student_Management_System
             dgvStudents.RowHeadersVisible = false;
             dgvStudents.DefaultCellStyle.Font = new Font("Segoe UI", 11, FontStyle.Regular);
 
+            // Populate rows
             int counter = 1;
             foreach (var student in students)
             {
                 dgvStudents.Rows.Add(
-                    counter++,
+                    student["StudentID"].ToString(), // hidden ID
+                    counter++,                        // # column
                     student["FirstName"].ToString(),
                     student["LastName"].ToString(),
-                    student["Department"].ToString(), // assuming Department field is now treated as Course
+                    student["Department"].ToString(), // Course
                     student["Sex"].ToString(),
                     student["YearLevel"].ToString()
                 );
@@ -675,21 +680,47 @@ namespace Student_Management_System
 
             bodyPanel.Controls.Add(dgvStudents);
 
+            // Buttons
             SiticoneButton btnAddStudent = new SiticoneButton
             {
                 Text = "Add New Student",
                 Size = new Size(180, 50),
-                Location = new Point(
-                    dgvStudents.Right - 570,
-                    dgvStudents.Bottom + 10
-                ),
+                Location = new Point(dgvStudents.Right - 570, dgvStudents.Bottom + 10),
                 FillColor = Color.MediumSeaGreen,
                 ForeColor = Color.White,
                 BorderRadius = 8,
                 Font = new Font("Segoe UI", 12, FontStyle.Bold),
                 Anchor = AnchorStyles.Right
             };
+            bodyPanel.Controls.Add(btnAddStudent);
 
+            SiticoneButton btnEditStudent = new SiticoneButton
+            {
+                Text = "Edit Student",
+                Size = new Size(180, 50),
+                Location = new Point(btnAddStudent.Right + 10, dgvStudents.Bottom + 10),
+                FillColor = Color.Goldenrod,
+                ForeColor = Color.White,
+                BorderRadius = 8,
+                Font = new Font("Segoe UI", 12, FontStyle.Bold),
+                Anchor = AnchorStyles.Right
+            };
+            bodyPanel.Controls.Add(btnEditStudent);
+
+            SiticoneButton btnDeleteStudent = new SiticoneButton
+            {
+                Text = "Delete Student",
+                Size = new Size(180, 50),
+                Location = new Point(btnEditStudent.Right + 10, dgvStudents.Bottom + 10),
+                FillColor = Color.IndianRed,
+                ForeColor = Color.White,
+                BorderRadius = 8,
+                Font = new Font("Segoe UI", 12, FontStyle.Bold),
+                Anchor = AnchorStyles.Right
+            };
+            bodyPanel.Controls.Add(btnDeleteStudent);
+
+            // Add Student
             btnAddStudent.Click += async (s, e) =>
             {
                 using (var form = new frmStudent())
@@ -734,23 +765,8 @@ namespace Student_Management_System
                     }
                 }
             };
-            bodyPanel.Controls.Add(btnAddStudent);
 
-            SiticoneButton btnEditStudent = new SiticoneButton
-            {
-                Text = "Edit Student",
-                Size = new Size(180, 50),
-                Location = new Point(
-                    btnAddStudent.Right + 10,
-                    dgvStudents.Bottom + 10
-                ),
-                FillColor = Color.Goldenrod,
-                ForeColor = Color.White,
-                BorderRadius = 8,
-                Font = new Font("Segoe UI", 12, FontStyle.Bold),
-                Anchor = AnchorStyles.Right
-            };
-
+            // Edit Student
             btnEditStudent.Click += async (s, e) =>
             {
                 if (dgvStudents.SelectedRows.Count == 0)
@@ -763,7 +779,7 @@ namespace Student_Management_System
                 string firstName = dgvStudents.SelectedRows[0].Cells["FirstName"].Value.ToString();
                 string lastName = dgvStudents.SelectedRows[0].Cells["LastName"].Value.ToString();
                 string sex = dgvStudents.SelectedRows[0].Cells["Sex"].Value.ToString();
-                string department = dgvStudents.SelectedRows[0].Cells["Department"].Value.ToString();
+                string department = dgvStudents.SelectedRows[0].Cells["Course"].Value.ToString(); // renamed column
                 string yearLevel = dgvStudents.SelectedRows[0].Cells["YearLevel"].Value.ToString();
 
                 using (var form = new frmStudent())
@@ -814,23 +830,8 @@ namespace Student_Management_System
                     }
                 }
             };
-            bodyPanel.Controls.Add(btnEditStudent);
 
-            SiticoneButton btnDeleteStudent = new SiticoneButton
-            {
-                Text = "Delete Student",
-                Size = new Size(180, 50),
-                Location = new Point(
-                    btnEditStudent.Right + 10,
-                    dgvStudents.Bottom + 10
-                ),
-                FillColor = Color.IndianRed,
-                ForeColor = Color.White,
-                BorderRadius = 8,
-                Font = new Font("Segoe UI", 12, FontStyle.Bold),
-                Anchor = AnchorStyles.Right
-            };
-
+            // Delete Student
             btnDeleteStudent.Click += async (s, e) =>
             {
                 if (dgvStudents.SelectedRows.Count == 0)
@@ -859,7 +860,7 @@ namespace Student_Management_System
                             if (response.IsSuccessStatusCode)
                             {
                                 MessageBox.Show("Student deleted successfully!");
-                                await ShowStudentList(classId); 
+                                await ShowStudentList(classId);
                             }
                             else
                             {
@@ -874,8 +875,6 @@ namespace Student_Management_System
                     }
                 }
             };
-
-            bodyPanel.Controls.Add(btnDeleteStudent);
         }
 
         private async Task ShowDueAssignments()
