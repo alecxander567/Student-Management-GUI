@@ -153,12 +153,15 @@ Input validation on all forms to ensure:
       <img src="images/img1.png" alt="Login Screen" width="45%">
       <img src="images/img2.png" alt="Registration Screen" width="45%">
     </div>
+    
     <div align="center">
       <img src="images/img3.png" alt="Classes Overview" width="90%">
     </div>
+    
     <div align="center">
       <img src="images/Screenshot 2025-10-07 100658.png" alt="Class Dashboard with Assignments" width="90%">
     </div>
+    
     <div align="center">
       <img src="images/Screenshot 2025-10-07 100709.png" alt="Assignment Creation" width="45%">
       <img src="images/Screenshot 2025-10-07 100717.png" alt="Assignment List" width="45%">
