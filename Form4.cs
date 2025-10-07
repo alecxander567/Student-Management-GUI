@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Siticone.Desktop.UI.WinForms;
 using System;
 using System.Collections.Generic;
@@ -11,11 +12,12 @@ using System.Windows.Forms;
 namespace Student_Management_System
 {
     public partial class frmClass : Form
-    {
+    {   
         private SiticonePanel bodyPanel;
         private readonly HttpClient client = new HttpClient();
         private dynamic currentClass;
         private SiticoneButton activeMenuButton;
+        private object currentUserEmail;
 
         public frmClass(dynamic cls)
         {
@@ -59,7 +61,7 @@ namespace Student_Management_System
             };
             this.Controls.Add(sidebarPanel);
 
-            string[] menuNames = { "Dashboard", "Student List", "Assignments & Activities", "Settings", "Back to Classes" };
+            string[] menuNames = { "Dashboard", "Student List", "Due Assignments", "Back to Classes" };
             int topOffset = 20;
             foreach (var menu in menuNames)
             {
@@ -92,21 +94,12 @@ namespace Student_Management_System
                         await ShowStudentList(Convert.ToInt32(currentClass.ClassID));
                     };
                 }
-                else if (menu == "Assignments & Activities")
-                {
-                    btn.Click += async (s, e) =>
-                    {
-                        SetActiveMenuButton((SiticoneButton)s);
-                        bodyPanel.Controls.Clear();
-                        await LoadAssignments(bodyPanel, Convert.ToInt32(currentClass.ClassID));
-                    };
-                }
-                else if (menu == "Settings")
+                else if (menu == "Due Assignments")
                 {
                     btn.Click += (s, e) =>
                     {
                         SetActiveMenuButton((SiticoneButton)s);
-                        ShowSettings();
+                        ShowDueAssignments();
                     };
                 }
                 else if (menu == "Back to Classes")
@@ -867,7 +860,7 @@ namespace Student_Management_System
                             if (response.IsSuccessStatusCode)
                             {
                                 MessageBox.Show("Student deleted successfully!");
-                                await ShowStudentList(classId); // ✅ This refresh keeps numbering correct
+                                await ShowStudentList(classId); 
                             }
                             else
                             {
@@ -886,17 +879,117 @@ namespace Student_Management_System
             bodyPanel.Controls.Add(btnDeleteStudent);
         }
 
-        private void ShowSettings()
+        private async Task ShowDueAssignments()
         {
             bodyPanel.Controls.Clear();
-            var lbl = new SiticoneHtmlLabel
+            bodyPanel.AutoScroll = true;
+
+            SiticoneHtmlLabel header = new SiticoneHtmlLabel
             {
-                Text = "⚙️ Settings will go here.",
-                Location = new Point(20, 50),
-                Font = new Font("Segoe UI", 12, FontStyle.Italic),
+                Text = "📋 Due Assignments",
+                Font = new Font("Segoe UI", 20, FontStyle.Bold),
+                ForeColor = Color.Black,
+                Location = new Point(20, 20),
                 AutoSize = true
             };
-            bodyPanel.Controls.Add(lbl);
+            bodyPanel.Controls.Add(header);
+
+            try
+            {
+                string url = $"http://localhost:8000/api/overdue_assignments/?class_id={currentClass.ClassID}";
+                HttpResponseMessage response = await client.GetAsync(url);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    string errorContent = await response.Content.ReadAsStringAsync();
+                    MessageBox.Show($"Failed to fetch overdue assignments: {errorContent}");
+                    return;
+                }
+
+                string json = await response.Content.ReadAsStringAsync();
+                var assignments = Newtonsoft.Json.JsonConvert.DeserializeObject<List<dynamic>>(json);
+
+                int headerHeight = 50;
+                int spacingAfterHeader = 60;
+                int currentY = headerHeight + spacingAfterHeader;
+
+                int leftPadding = 220;
+                int rightPadding = 40;
+                int assignmentBoxWidth = Math.Max(800, bodyPanel.Width - leftPadding - rightPadding);
+                int assignmentBoxHeight = 150;
+                int assignmentSpacing = 20;
+
+                foreach (var assignment in assignments)
+                {
+                    DateTime dueDate = DateTime.Parse((string)assignment.DateOfSubmission);
+                    if (dueDate < DateTime.Now) // only overdue
+                    {
+                        SiticonePanel assignmentBox = new SiticonePanel
+                        {
+                            Size = new Size(assignmentBoxWidth, assignmentBoxHeight),
+                            Location = new Point(leftPadding, currentY),
+                            FillColor = Color.IndianRed,
+                            BorderRadius = 10,
+                            ShadowDecoration = { Enabled = true }
+                        };
+
+                        SiticoneHtmlLabel lblTitle = new SiticoneHtmlLabel
+                        {
+                            Text = $"📘 {assignment["Title"]}",
+                            Font = new Font("Segoe UI", 16, FontStyle.Bold),
+                            Location = new Point(10, 10),
+                            ForeColor = Color.White,
+                            AutoSize = true
+                        };
+
+                        SiticoneHtmlLabel lblInstructions = new SiticoneHtmlLabel
+                        {
+                            Text = $"Instructions: {assignment["Instructions"]}",
+                            Font = new Font("Segoe UI", 12, FontStyle.Regular),
+                            Location = new Point(10, 45),
+                            MaximumSize = new Size(assignmentBox.Width - 220, 60),
+                            AutoSize = true,
+                            ForeColor = Color.White
+                        };
+
+                        SiticoneHtmlLabel lblDates = new SiticoneHtmlLabel
+                        {
+                            Text = $"Posted: {assignment["DatePosted"]} | Due: {assignment["DateOfSubmission"]}",
+                            Font = new Font("Segoe UI", 11, FontStyle.Italic),
+                            ForeColor = Color.White,
+                            Location = new Point(10, assignmentBoxHeight - 25),
+                            AutoSize = true
+                        };
+
+                        assignmentBox.Controls.Add(lblTitle);
+                        assignmentBox.Controls.Add(lblInstructions);
+                        assignmentBox.Controls.Add(lblDates);
+                        bodyPanel.Controls.Add(assignmentBox);
+
+                        currentY += assignmentBoxHeight + assignmentSpacing;
+                    }
+                }
+
+                if (currentY == headerHeight + spacingAfterHeader)
+                {
+                    SiticoneHtmlLabel lblNone = new SiticoneHtmlLabel
+                    {
+                        Text = "No overdue assignments!",
+                        Font = new Font("Segoe UI", 14, FontStyle.Italic),
+                        ForeColor = Color.Gray,
+                        Location = new Point(leftPadding, currentY),
+                        AutoSize = true
+                    };
+                    bodyPanel.Controls.Add(lblNone);
+                    currentY += 50;
+                }
+
+                bodyPanel.AutoScrollMinSize = new Size(0, currentY + 50);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error fetching overdue assignments: {ex.Message}");
+            }
         }
     }
 }
