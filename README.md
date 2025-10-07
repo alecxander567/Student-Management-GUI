@@ -152,7 +152,7 @@ Input validation on all forms to ensure:
 
 <div align="center">
   <img src="images/img1.png" alt="Login Screen" width="45%">
-  <img src="images/img2.png" alt="Registration Screen" width="45%">
+  <img src="images/Screenshot 2025-10-07 130006.png" alt="Registration Screen" width="45%">
 </div>
 Instructor Dashboard
 <div align="center">
