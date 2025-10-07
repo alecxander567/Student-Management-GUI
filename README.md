@@ -149,5 +149,11 @@ Input validation on all forms to ensure:
 5. Manage student enrollments
 
 ## Screenshots
-
+    ![App Screenshot](images/img1.png) 
+    ![App Screenshot](images/img2.png) 
+    ![App Screenshot](images/img3.png) 
+    ![App Screenshot](images/Screenshot 2025-10-07 100658.png)
+    ![App Screenshot](images/Screenshot 2025-10-07 100709.png)
+    ![App Screenshot](images/Screenshot 2025-10-07 100717.png)
+    
 
