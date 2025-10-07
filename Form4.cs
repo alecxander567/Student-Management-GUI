@@ -642,11 +642,9 @@ namespace Student_Management_System
                 Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right
             };
 
-            // Hidden StudentID column
             dgvStudents.Columns.Add("StudentID", "ID");
             dgvStudents.Columns["StudentID"].Visible = false;
 
-            // Other columns
             dgvStudents.Columns.Add("No", "#");
             dgvStudents.Columns["No"].Width = 50;
             dgvStudents.Columns.Add("FirstName", "First Name");
@@ -663,16 +661,15 @@ namespace Student_Management_System
             dgvStudents.RowHeadersVisible = false;
             dgvStudents.DefaultCellStyle.Font = new Font("Segoe UI", 11, FontStyle.Regular);
 
-            // Populate rows
             int counter = 1;
             foreach (var student in students)
             {
                 dgvStudents.Rows.Add(
-                    student["StudentID"].ToString(), // hidden ID
-                    counter++,                        // # column
+                    student["StudentID"].ToString(), 
+                    counter++,                       
                     student["FirstName"].ToString(),
                     student["LastName"].ToString(),
-                    student["Department"].ToString(), // Course
+                    student["Department"].ToString(), 
                     student["Sex"].ToString(),
                     student["YearLevel"].ToString()
                 );
@@ -680,7 +677,6 @@ namespace Student_Management_System
 
             bodyPanel.Controls.Add(dgvStudents);
 
-            // Buttons
             SiticoneButton btnAddStudent = new SiticoneButton
             {
                 Text = "Add New Student",
@@ -720,7 +716,6 @@ namespace Student_Management_System
             };
             bodyPanel.Controls.Add(btnDeleteStudent);
 
-            // Add Student
             btnAddStudent.Click += async (s, e) =>
             {
                 using (var form = new frmStudent())
@@ -766,7 +761,6 @@ namespace Student_Management_System
                 }
             };
 
-            // Edit Student
             btnEditStudent.Click += async (s, e) =>
             {
                 if (dgvStudents.SelectedRows.Count == 0)
@@ -831,7 +825,6 @@ namespace Student_Management_System
                 }
             };
 
-            // Delete Student
             btnDeleteStudent.Click += async (s, e) =>
             {
                 if (dgvStudents.SelectedRows.Count == 0)

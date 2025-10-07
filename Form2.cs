@@ -27,6 +27,12 @@ namespace Student_Management_System
             this.Text = "Sign Up - Student Management System";
             this.StartPosition = FormStartPosition.CenterScreen;
 
+            int controlWidth = 320;
+            int controlHeightTextBox = 45;
+            int controlHeightButton = 50;
+            int verticalSpacing = 20; 
+            int startY = 30; 
+
             lblTitle = new SiticoneHtmlLabel
             {
                 Text = "Create an Account",
@@ -37,78 +43,88 @@ namespace Student_Management_System
             this.Controls.Add(lblTitle);
             lblTitle.Location = new Point(
                 (this.ClientSize.Width - lblTitle.Width) / 2,
-                30
+                startY
             );
+
+            startY += lblTitle.Height + verticalSpacing * 2;
 
             txtFullName = new SiticoneTextBox
             {
                 PlaceholderText = "Full Name",
                 Font = new Font("Segoe UI", 12),
-                Size = new Size(320, 45),
+                Size = new Size(controlWidth, controlHeightTextBox),
                 BorderRadius = 8
             };
             this.Controls.Add(txtFullName);
             txtFullName.Location = new Point(
-                (this.ClientSize.Width - txtFullName.Width) / 2,
-                120
+                (this.ClientSize.Width - controlWidth) / 2,
+                startY
             );
+
+            startY += controlHeightTextBox + verticalSpacing;
 
             txtEmail = new SiticoneTextBox
             {
                 PlaceholderText = "Email",
                 Font = new Font("Segoe UI", 12),
-                Size = new Size(320, 45),
+                Size = new Size(controlWidth, controlHeightTextBox),
                 BorderRadius = 8
             };
             this.Controls.Add(txtEmail);
             txtEmail.Location = new Point(
-                (this.ClientSize.Width - txtEmail.Width) / 2,
-                180
+                (this.ClientSize.Width - controlWidth) / 2,
+                startY
             );
+
+            startY += controlHeightTextBox + verticalSpacing;
 
             txtPassword = new SiticoneTextBox
             {
                 PlaceholderText = "Password",
                 Font = new Font("Segoe UI", 12),
-                Size = new Size(320, 45),
+                Size = new Size(controlWidth, controlHeightTextBox),
                 PasswordChar = '●',
                 BorderRadius = 8
             };
             this.Controls.Add(txtPassword);
             txtPassword.Location = new Point(
-                (this.ClientSize.Width - txtPassword.Width) / 2,
-                240
+                (this.ClientSize.Width - controlWidth) / 2,
+                startY
             );
+
+            startY += controlHeightTextBox + verticalSpacing * 2;
 
             btnRegister = new SiticoneButton
             {
                 Text = "Register",
                 Font = new Font("Segoe UI", 14, FontStyle.Bold),
-                Size = new Size(320, 50),
+                Size = new Size(controlWidth, controlHeightButton),
                 BorderRadius = 8,
                 FillColor = Color.SeaGreen,
                 ForeColor = Color.White
             };
             this.Controls.Add(btnRegister);
             btnRegister.Location = new Point(
-                (this.ClientSize.Width - btnRegister.Width) / 2,
-                370
+                (this.ClientSize.Width - controlWidth) / 2,
+                startY
             );
             btnRegister.Click += BtnRegister_ClickAsync;
+
+            startY += controlHeightButton + verticalSpacing;
 
             btnCancel = new SiticoneButton
             {
                 Text = "Cancel",
                 Font = new Font("Segoe UI", 12, FontStyle.Regular),
-                Size = new Size(320, 45),
+                Size = new Size(controlWidth, controlHeightTextBox),
                 BorderRadius = 8,
                 FillColor = Color.Gray,
                 ForeColor = Color.White
             };
             this.Controls.Add(btnCancel);
             btnCancel.Location = new Point(
-                (this.ClientSize.Width - btnCancel.Width) / 2,
-                430
+                (this.ClientSize.Width - controlWidth) / 2,
+                startY
             );
             btnCancel.Click += BtnCancel_Click;
         }
