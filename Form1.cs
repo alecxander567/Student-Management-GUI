@@ -28,12 +28,12 @@ namespace Student_Management_System
 
         private void frmLogin_Load(object sender, EventArgs e)
         {
-            this.Text = "Login - Student Management System";
+            this.Text = "Login - Class Management System";
             this.StartPosition = FormStartPosition.CenterScreen;
 
             lblTitle = new SiticoneHtmlLabel
             {
-                Text = "Student Management System",
+                Text = "Class Management System",
                 Font = new Font("Segoe UI", 28, FontStyle.Bold),
                 ForeColor = Color.SeaGreen,
                 AutoSize = true
